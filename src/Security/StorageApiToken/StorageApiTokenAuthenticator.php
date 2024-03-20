@@ -42,7 +42,10 @@ class StorageApiTokenAuthenticator implements TokenAuthenticatorInterface
             $storageApiClient = $wrapper->getBasicClient();
             $tokenInfo = $storageApiClient->verifyToken();
         } catch (ClientException $e) {
-            throw new CustomUserMessageAuthenticationException($e->getMessage(), [], 0, $e);
+            if (is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 500) {
+                throw new CustomUserMessageAuthenticationException($e->getMessage(), [], 0, $e);
+            }
+            throw $e;
         }
 
         return new StorageApiToken($tokenInfo, $storageApiClient->getTokenString());
